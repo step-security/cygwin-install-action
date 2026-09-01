@@ -338,6 +338,7 @@ jobs:
 
   pester:
     name: "Pester test suite"
+    if: github.actor != 'dependabot[bot]'
     runs-on: "windows-latest"
     steps:
       - name: "Checkout the repository"
