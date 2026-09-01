@@ -38,7 +38,7 @@ inputs:
     required: false
     default: 'true'
   check-installer-sig:
-    description: Check the Autheticode signature of the installer
+    description: Check the Authenticode signature of the installer
     required: false
     default: 'true'
   work-vol:
