@@ -9,7 +9,7 @@ e.g.
 
 ```yaml
 - run: git config --global core.autocrlf input
-- uses: actions/checkout@v6
+- uses: actions/checkout@v7
 
 - uses: step-security/cygwin-install-action@v6
   with:
@@ -67,7 +67,7 @@ A list of additional packages to install.
 Example usage:
 
 ```yaml
-- uses: 'step-security/cygwin-install-action@<version>'
+- uses: 'step-security/cygwin-install-action@v6'
   with:
     packages: |
       git
@@ -90,7 +90,7 @@ Setting this input to `'true'` will allow test packages
 to be found and installed.
 
 ```yaml
-- uses: 'step-security/cygwin-install-action@<version>'
+- uses: 'step-security/cygwin-install-action@v6'
   with:
     allow-test-packages: 'true'
     packages: |
@@ -110,7 +110,7 @@ The default value is `'D:'` for performance reasons.
 Example:
 
 ```yaml
-- uses: 'step-security/cygwin-install-action@<version>'
+- uses: 'step-security/cygwin-install-action@v6'
   with:
     work-vol: 'C:' # This affects the Cygwin install directory, too.
 ```
@@ -125,7 +125,7 @@ which is calculated using the [`work-vol`](#work-vol) input.
 Example:
 
 ```yaml
-- uses: 'step-security/cygwin-install-action@<version>'
+- uses: 'step-security/cygwin-install-action@v6'
   with:
     install-dir: 'D:\cygwin64'
 ```
@@ -150,7 +150,7 @@ Select the architecture to install.
 Example usage:
 
 ```yaml
-- uses: 'step-security/cygwin-install-action@<version>'
+- uses: 'step-security/cygwin-install-action@v6'
   with:
     platform: 'x86_64'
 ```
@@ -162,7 +162,7 @@ By default, Cygwin's `/usr/bin` directory is added to the system `$PATH`.
 This behavior can be disabled by setting this input to `'false'`.
 
 ```yaml
-- uses: 'step-security/cygwin-install-action@<version>'
+- uses: 'step-security/cygwin-install-action@v6'
   with:
     add-to-path: 'false'
 ```
@@ -181,7 +181,7 @@ The default site is selected based on the value of the [`platform`](#platform):
 Example:
 
 ```yaml
-- uses: 'step-security/cygwin-install-action@<version>'
+- uses: 'step-security/cygwin-install-action@v6'
   with:
     site: |
       https://mirrors.kernel.org/sourceware/cygwin/
@@ -197,7 +197,7 @@ Example:
 ```yaml
 # Prior to reaching this step in the workflow
 # you would need to download the keys referenced below.
-- uses: 'step-security/cygwin-install-action@<version>'
+- uses: 'step-security/cygwin-install-action@v6'
   with:
     pubkeys: |
       D:\key1.pub
@@ -220,7 +220,7 @@ This behavior can be disabled by setting this input to `'false'`.
 Example:
 
 ```yaml
-- uses: 'step-security/cygwin-install-action@<version>'
+- uses: 'step-security/cygwin-install-action@v6'
   with:
     check-hash: 'true'  # Change to 'false' only if required.
 ```
@@ -241,7 +241,7 @@ This behavior can be disabled by setting this input to `'false'`.
 Example:
 
 ```yaml
-- uses: 'step-security/cygwin-install-action@<version>'
+- uses: 'step-security/cygwin-install-action@v6'
   with:
     check-installer-sig: 'true'  # Change to 'false' only if required.
 ```
@@ -262,7 +262,7 @@ This behavior can be disabled by setting this input to `'false'`.
 Example:
 
 ```yaml
-- uses: 'step-security/cygwin-install-action@<version>'
+- uses: 'step-security/cygwin-install-action@v6'
   with:
     check-sig: 'true'  # Change to 'false' only if required.
 ```
