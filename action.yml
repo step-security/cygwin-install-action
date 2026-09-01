@@ -1,0 +1,82 @@
+name: Install Cygwin Action
+description: GitHub Action to install Cygwin
+
+inputs:
+  platform:
+    description: Platform [x86, x86_64]
+    required: false
+    default: x86_64
+  packages:
+    description: Packages to install
+    required: false
+  install-dir:
+    # For consistency and simplicity, install to <work-dir>:\cygwin rather
+    # than to the platform dependent default (e.g. <work-dir>:\cygwin64)
+    description: Installation directory (overrides work-vol)
+    required: false
+    default: ''
+  check-sig:
+    description: Should the setup.ini file signature be checked?
+    required: false
+    default: 'true'
+  pubkeys:
+    description: Absolute paths of extra public key files (RFC4880 format), separated by whitespace
+    required: false
+  site:
+    description: Download site URLs separated by whitespace
+    required: false
+  add-to-path:
+    description: Should Cygwin's bin directory be added to the system PATH?
+    required: false
+    default: 'true'
+  allow-test-packages:
+    description: Consider package versions marked test
+    required: false
+    default: 'false'
+  check-hash:
+    description: Check the hash of the installer
+    required: false
+    default: 'true'
+  check-installer-sig:
+    description: Check the Autheticode signature of the installer
+    required: false
+    default: 'true'
+  work-vol:
+    description: Volume on which to store setup and packages, and install Cygwin
+    required: false
+    default: ''
+
+outputs:
+  setup:
+    description: Pathname of the Cygwin setup executable
+    value: ${{ steps.cygwin-install-action.outputs.setup }}
+  root:
+    description: Root directory of Cygwin installation (equal to install-dir input)
+    value: ${{ steps.cygwin-install-action.outputs.root }}
+  package-cache:
+    description: Package cache directory
+    value: ${{ steps.cygwin-install-action.outputs.package-cache }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: cygwin-install-action
+      env:
+        inputs_platform: "${{ inputs.platform }}"
+        inputs_packages: "${{ inputs.packages }}"
+        inputs_install_dir: "${{ inputs.install-dir }}"
+        inputs_check_sig: "${{ inputs.check-sig }}"
+        inputs_pubkeys: "${{ inputs.pubkeys }}"
+        inputs_site: "${{ inputs.site }}"
+        inputs_add_to_path: "${{ inputs.add-to-path }}"
+        inputs_allow_test_packages: "${{ inputs.allow-test-packages }}"
+        inputs_check_hash: "${{ inputs.check-hash }}"
+        inputs_check_installer_sig: "${{ inputs.check-installer-sig }}"
+        inputs_work_vol: "${{ inputs.work-vol }}"
+      run: |
+        & $Env:GITHUB_ACTION_PATH\src\install.ps1
+      shell: powershell
+
+branding:
+  color: green
+  icon: terminal

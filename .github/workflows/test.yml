@@ -1,0 +1,348 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: windows-latest
+    strategy:
+       matrix:
+         include:
+           - platform: 'x86_64'
+           - platform: 'x86'
+             packages: >-
+               coreutils
+               moreutils
+           - platform: 'amd64'
+             packages: |
+               coreutils,
+               moreutils
+       fail-fast: false
+
+    name: 'Test ${{ matrix.platform }}'
+
+    steps:
+    - run: git config --global core.autocrlf input
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Install Cygwin
+      uses: ./
+      with:
+        platform: ${{ matrix.platform }}
+        packages: ${{ matrix.packages }}
+        add-to-path: false
+
+    - name: Explicitly running shell
+      run: D:\cygwin\bin\bash -lc "echo 'Explicitly run shell'"
+
+    - name: Explicitly running shell via compat symlink
+      run: C:\cygwin\bin\bash -lc "echo 'Explicitly run shell (compat)'"
+
+    - name: Single-line inline shell
+      run: echo "Running in $(pwd)"
+      shell: D:\cygwin\bin\bash.exe '{0}'
+
+    - name: Multiline inline shell
+      run: >-
+        echo "Running in $(pwd)" &&
+        true
+      shell: D:\cygwin\bin\bash.exe '{0}'
+
+    - name: Shell script
+      run: D:\cygwin\bin\bash.exe tests/script.sh
+
+    - name: Check requested packages got installed
+      run: D:\cygwin\bin\sponge.exe tmp
+      if: contains(matrix.packages, 'moreutils')
+
+    - name: Check PATH hasn't changed
+      run: |
+        if [[ "${OSTYPE}" = "cygwin" ]]; then
+          if [[ ! -v MSYSTEM ]]; then
+            echo "unexpectedly using Cygwin Bash"
+            exit 1
+          fi
+        fi
+
+        if [[ "$(cygpath -aw "$(which cygpath)")" = 'C:\cygwin\'* ]]; then
+          echo "unexpectedly using Cygwin cygpath"
+          exit 1
+        fi
+      shell: bash  # If Cygwin is not in PATH -- as expected -- this will be Git Bash
+      env:
+        SHELLOPTS: igncr
+
+  complex-test:
+    runs-on: windows-latest
+    name: 'Complex Test'
+
+    strategy:
+       matrix:
+         include:
+           - combination: 1
+
+    defaults:
+      run:
+        shell: C:\cygwin\bin\bash.exe --noprofile --norc -o igncr -eo pipefail '{0}'
+
+    steps:
+    - run: git config --global core.autocrlf input
+      shell: pwsh -command ". '{0}'".
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Install Cygwin
+      uses: ./
+
+    - name: Run one
+      run: |
+        echo
+        echo "One"
+        echo
+
+    - name: Run two
+      run: |
+        if [[ '${{ matrix.combination }}' == "${COMBINATION}" ]]; then
+          echo "It's true: ${COMBINATION} satisfied"
+        else
+          exit 1
+        fi
+
+        echo
+        echo "Two"
+        echo
+      env:
+        COMBINATION: 1
+
+  install-dir-test:
+    runs-on: windows-latest
+    name: 'Check install directory behaviour'
+
+    strategy:
+      matrix:
+        include:
+          - install-dir: C:\tools\cygwin
+          - install-dir: D:\cygwin64
+      fail-fast: false
+
+    steps:
+    - run: git config --global core.autocrlf input
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Install Cygwin
+      uses: ./
+      with:
+        install-dir: "${{ matrix.install-dir }}"
+
+    - name: Check install directory
+      run: |
+        if [[ "$(cygpath -aw /)" == '${{ matrix.install-dir }}' ]]; then
+          echo "Installed in $(cygpath -aw /)"
+        else
+          exit 1
+        fi
+
+        if [[ "${OSTYPE}" != "cygwin" ]]; then
+          echo "unexpected OSTYPE ${OSTYPE}"
+          exit 1
+        fi
+
+      # Only specify the shell by name; GitHub actions should find the correct
+      # executable thanks to the action setting the path appropriately.
+      shell: bash
+      env:
+        SHELLOPTS: igncr
+
+  work-vol-test:
+    runs-on: windows-latest
+    name: 'Check work volume behaviour'
+
+    strategy:
+      matrix:
+        include:
+          - work-vol: 'C:'
+          - work-vol: 'D:'
+      fail-fast: false
+
+    steps:
+    - run: git config --global core.autocrlf input
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Install Cygwin
+      uses: ./
+      with:
+        work-vol: "${{ matrix.work-vol }}"
+
+    - name: Check directory use
+      run: |
+        root_dir=$(cygpath -aw /)
+        echo "Installed in ${root_dir}"
+        if [[ "${root_dir}" != "${{ matrix.work-vol }}\cygwin" ]]; then
+          exit 1
+        fi
+
+        setup_file=$(cygpath -au ${{ matrix.work-vol }}\setup.exe)
+        echo "Setup should be stored at ${setup_file}"
+        if [[ ! -f ${setup_file} ]]; then
+          exit 1
+        fi
+
+      shell: bash
+      env:
+        SHELLOPTS: igncr
+
+  symlink-test:
+    runs-on: windows-latest
+    name: 'Check symlink type control'
+
+    strategy:
+      matrix:
+        include:
+          - symlink-type: native
+          - symlink-type: sys
+          - symlink-type: wsl
+      fail-fast: false
+
+    env:
+      CYGWIN: winsymlinks:${{ matrix.symlink-type }}
+
+    steps:
+    - run: git config --global core.autocrlf input
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Install Cygwin
+      uses: ./
+
+    - name: Check symlink
+      run: bash tests/symlink.sh
+
+  time-machine:
+    runs-on: windows-latest
+    name: 'Test time machine signature'
+
+    steps:
+    - run: git config --global core.autocrlf input
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Install Cygwin
+      uses: ./
+      with:
+        site: http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/01/22/181752
+        check-sig: false
+
+    - name: Check cygwin version
+      run: |
+        cygcheck -cd cygwin | grep -qF 3.1.7-1
+      shell: C:\cygwin\bin\bash.exe --noprofile --norc -o igncr -eo pipefail '{0}'
+
+  bad-sig:
+    runs-on: windows-latest
+    name: 'Test failure of time machine signature'
+
+    steps:
+    - run: git config --global core.autocrlf input
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Fail to install Cygwin
+      uses: ./
+      with:
+        site: http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/01/22/181752
+      continue-on-error: true
+
+    # The install step should have failed due to the duff signature.  Check
+    # that by trying to run Bash: if Cygwin were installed correctly, we'd run
+    # Cygwin Bash; if it isn't, we'll run one of the non-Cygwin Bash
+    # executables provided by the GitHub runner.
+    - name: Check Cygwin isn't installed
+      run: |
+        if [[ "${OSTYPE}" = "cygwin" ]]; then
+          if [[ ! -v MSYSTEM ]]; then
+            echo "unexpectedly using Cygwin Bash"
+            exit 1
+          fi
+        fi
+      shell: bash
+      env:
+        SHELLOPTS: igncr
+
+  multiple-sites-and-pubkeys:
+    runs-on: windows-latest
+    name: 'Test multiple sites and extra pubkeys'
+
+    steps:
+    - run: git config --global core.autocrlf input
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Run repo HTTP server
+      uses: Eun/http-server-action@dadebd209d4a902eeefceb524c24c38b364c46a7 # v1.0.13
+      with:
+        directory: ${{ github.workspace }}\tests\repo
+
+    - name: Install Cygwin
+      uses: ./
+      with:
+        site: |
+          http://localhost:8080
+          http://mirrors.kernel.org/sourceware/cygwin/
+        packages: cygwin-install-action-test
+        pubkeys: ${{ github.workspace }}\tests\repo\key.pub
+
+    - name: Run test shell script
+      run: C:\cygwin\bin\bash.exe /cygwin-install-action-test.sh
+
+  outputs-test:
+    runs-on: windows-latest
+
+    name: 'Test outputs'
+
+    steps:
+    - run: git config --global core.autocrlf input
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Install Cygwin
+      id: cygwin-install
+      uses: ./
+
+    - name: Verify Outputs
+      run: |
+        echo "setup executable is at: ${SETUP}"
+        echo "cygwin install root directory is: ${ROOT}"
+        echo "cygwin package cache directory is: ${CACHE}"
+
+        if [[ "${SETUP}" != "D:\setup.exe" ]]; then
+          echo "unexpected value for 'setup' output"
+          exit 1
+        fi
+
+        if [[ "${ROOT}" != "D:\cygwin" ]]; then
+          echo "unexpected value for 'root' output"
+          exit 1
+        fi
+
+        if [[ "${CACHE}" != "D:\cygwin-packages" ]]; then
+          echo "unexpected value for 'package-cache' output"
+          exit 1
+        fi
+      shell: bash -o igncr '{0}'
+      env:
+        SETUP: ${{ steps.cygwin-install.outputs.setup }}
+        ROOT: ${{ steps.cygwin-install.outputs.root }}
+        CACHE: ${{ steps.cygwin-install.outputs.package-cache }}
+
+  pester:
+    name: "Pester test suite"
+    runs-on: "windows-latest"
+    steps:
+      - name: "Checkout the repository"
+        uses: "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd" # v6.0.2
+      - name: "Run Pester"
+        run: |
+          Invoke-Pester -Output Detailed ./tests
