@@ -13,9 +13,14 @@ jobs:
     name: 'Test ${{ matrix.platform }}'
 
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
     - run: git config --global core.autocrlf input
 
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Install Cygwin
       uses: ./
@@ -79,10 +84,15 @@ jobs:
         shell: C:\cygwin\bin\bash.exe --noprofile --norc -o igncr -eo pipefail '{0}'
 
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
     - run: git config --global core.autocrlf input
       shell: pwsh -command ". '{0}'".
 
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Install Cygwin
       uses: ./
@@ -120,9 +130,14 @@ jobs:
       fail-fast: false
 
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
     - run: git config --global core.autocrlf input
 
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Install Cygwin
       uses: ./
@@ -161,9 +176,14 @@ jobs:
       fail-fast: false
 
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
     - run: git config --global core.autocrlf input
 
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Install Cygwin
       uses: ./
@@ -205,9 +225,14 @@ jobs:
       CYGWIN: winsymlinks:${{ matrix.symlink-type }}
 
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
     - run: git config --global core.autocrlf input
 
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Install Cygwin
       uses: ./
@@ -221,9 +246,14 @@ jobs:
     name: 'Test time machine signature'
 
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
     - run: git config --global core.autocrlf input
 
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Install Cygwin
       uses: ./
@@ -242,9 +272,14 @@ jobs:
     name: 'Test failure of time machine signature'
 
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
     - run: git config --global core.autocrlf input
 
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Fail to install Cygwin
       uses: ./
@@ -274,12 +309,17 @@ jobs:
     name: 'Test multiple sites and extra pubkeys'
 
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
     - run: git config --global core.autocrlf input
 
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Run repo HTTP server
-      uses: Eun/http-server-action@v1
+      uses: Eun/http-server-action@dadebd209d4a902eeefceb524c24c38b364c46a7 # v1.0.13
       with:
         directory: ${{ github.workspace }}\tests\repo
 
@@ -302,9 +342,14 @@ jobs:
     name: 'Test outputs'
 
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
     - run: git config --global core.autocrlf input
 
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: Install Cygwin
       id: cygwin-install
@@ -341,8 +386,13 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: "windows-latest"
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: "Checkout the repository"
-        uses: "actions/checkout@v7"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7.0.1
       - name: "Run Pester"
         run: |
           Invoke-Pester -Output Detailed ./tests
